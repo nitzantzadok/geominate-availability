@@ -1,0 +1,38 @@
+name: GEOminate availability
+
+on:
+  schedule:
+    - cron: '8,23,38,53 * * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Probe the public health endpoints or test alert delivery
+        type: choice
+        options: [probe, alert-test]
+        default: probe
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: availability
+  cancel-in-progress: false
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify the monitor
+        run: python3 -m unittest -v test_monitor.py
+      - name: Check availability and record an incident when necessary
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MONITOR_MODE: ${{ inputs.mode || 'probe' }}
+        run: python3 monitor.py
