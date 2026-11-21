@@ -70,7 +70,7 @@ class RepositoryAlerts:
                 if len(raw) > 512000:
                     raise RuntimeError('alert response too large')
                 return json.loads(raw)
-        except (OSError, ValueError) as exc:
+        except (OSError, ValueError):
             raise RuntimeError('repository alert request did not complete') from None
 
     def open_issue(self, title):
